@@ -4,15 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class User extends Model
+class Worker extends Model
 {
     protected $fillable = [
+        'telegram_id',
         'name',
         'username',
-        'telegram_id',
         'chat_id',
-        'role',
+        'is_active',
     ];
-
-    public $timestamps = true;
 }

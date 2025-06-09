@@ -10,6 +10,36 @@ services:
             - db
         networks:
             - lunch_time_network
+
+    scheduler:
+        build:
+            context: docker
+            dockerfile: Dockerfile
+        container_name: lunch_time_scheduler
+        volumes:
+            - ./:/var/www/
+        depends_on:
+            - db
+        networks:
+            - lunch_time_network
+        command: >
+            sh -c "while true; do
+                     php /var/www/artisan schedule:run --verbose --no-interaction
+                     sleep 60
+                   done"
+
+    queue:
+        build:
+            context: docker
+            dockerfile: Dockerfile
+        container_name: lunch_time_queue
+        volumes:
+            - ./:/var/www/
+        depends_on:
+            - db
+        networks:
+            - lunch_time_network
+        command: php /var/www/artisan queue:work --sleep=3 --tries=3 --max-time=3600 --verbose
     db:
         image: postgres:15
         container_name: lunch_time_db
