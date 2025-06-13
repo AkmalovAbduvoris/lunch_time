@@ -211,4 +211,8 @@ return [
     'payments' => [
         'provider_token' => env('TELEGRAPH_PAYMENT_PROVIDER_TOKEN', ''),
     ],
+    'routes' => [
+        'enabled' => env('TELEGRAPH_ROUTES', true),
+        'path' => '/telegraph',
+    ],
 ];
