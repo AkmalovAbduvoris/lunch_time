@@ -11,11 +11,14 @@ use App\Services\WorkerRoleService;
 class StartCommand extends Controller
 {
 
-    public function handleStart(TelegraphChat $chat, ChatTypeService $type, WorkerRoleService $role): void
-    {
+    public function handleStart(
+        TelegraphChat $chat,
+        ChatTypeService $type,
+        WorkerRoleService $role
+    ): void {
         if ($type->isGroup($chat)) {
             $chat->message("Salom guruhga xush kelibsiz\n" .
-                           "Bu guruhda /register kamandasi sizni ro'yxatga qo'shadi")->send();
+                "Bu guruhda /register kamandasi sizni ro'yxatga qo'shadi")->send();
             return;
         }
 
@@ -25,6 +28,6 @@ class StartCommand extends Controller
             return;
         }
         $chat->message("Salom botga xush kelibsiz bu botda mavjud kamandalar\n" .
-                       "/list ishchilarning obedga chiqish ro'yxati")->send();
+            "/list ishchilarning obedga chiqish ro'yxati")->send();
     }
 }

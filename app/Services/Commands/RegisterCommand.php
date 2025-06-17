@@ -9,8 +9,11 @@ use App\Services\ChatTypeService;
 
 class RegisterCommand
 {
-    public function handleRegister(TelegraphChat $chat, User $user, ChatTypeService $type): void
-    {
+    public function handleRegister(
+        TelegraphChat $chat,
+        User $user,
+        ChatTypeService $type
+    ): void {
         if ($type->isPrivate($chat)) {
             $chat->message("/register buyrug'i faqat guruhda ishlidi")->send();
             return;
@@ -27,7 +30,6 @@ class RegisterCommand
             [
                 'name'      => $user->firstName() . ($user->lastName() ?? ''),
                 'username'  => $user->username(),
-                'chat_id'   => $chat->chat_id,
                 'is_active' => true,
             ]
         );

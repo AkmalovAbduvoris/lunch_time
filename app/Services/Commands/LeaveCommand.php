@@ -9,8 +9,11 @@ use DefStudio\Telegraph\Models\TelegraphChat;
 
 class LeaveCommand
 {
-    public function handleLeave(TelegraphChat $chat, User $user, ChatTypeService  $chatTypeService)
-    {
+    public function handleLeave(
+        TelegraphChat $chat,
+        User $user,
+        ChatTypeService  $chatTypeService
+    ): void {
         logger()->info($user);
         if ($chatTypeService->isGroup($chat)) {
             $worker = Worker::where('telegram_id', $user->id())->first();

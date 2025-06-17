@@ -7,7 +7,6 @@ use App\Services\ChatTypeService;
 use DefStudio\Telegraph\Models\TelegraphChat;
 use DefStudio\Telegraph\Keyboard\Button;
 use DefStudio\Telegraph\Keyboard\Keyboard;
-use DefStudio\Telegraph\Keyboard\ReplyKeyboard;
 use App\Services\WorkerRoleService;
 use App\Models\Worker;
 
@@ -29,35 +28,32 @@ class ListCommand extends Controller
             return;
         }
 
+        $message = "👥 Faol ishchilar:\n";
+        $keyboard = Keyboard::make();
+
         $workers = Worker::where('is_active', true)
-            ->orderBy('created_at', 'desc')
+            ->orderBy('order')
             ->get();
 
-        if ($workers->isEmpty()) {
-            $chat->message("Hozirda faol ishchilar mavjud emas.")->send();
-            return;
-        }
-
-        $message = "👥 Faol ishchilar:\n";
         foreach ($workers as $index => $workerItem) {
             $position = $index + 1;
             $username = $workerItem->username ? "@{$workerItem->username}" : "username yo'q";
             $message .= "$position. {$workerItem->name} ($username)\n";
+
+            $row = [
+                Button::make("{$position}. {$workerItem->name}")->action(''),
+            ];
+
+            if ($index > 0) {
+                $row[] = Button::make("⬆️")->action('move_up')->param('id', $workerItem->id);
+            }
+
+            if ($index < $workers->count() - 1) {
+                $row[] = Button::make("⬇️")->action('move_down')->param('id', $workerItem->id);
+            }
+            $keyboard->row($row);
         }
 
-        $keyboard = Keyboard::make()
-            ->row([
-                Button::make('🔄 Joylashuvni o‘zgartirish')->action('send_sms'),
-            ])
-            ->row([
-                Button::make('⬅️ Orqaga')->action('show_main_menu'),
-            ]);
-        // $keyboard = ReplyKeyboard::make()
-        //     ->button('Send Contact')->requestContact()
-        //     ->button('Send Location')->requestLocation()
-        //     ->persistent();
-
-        // $chat->html($message)->replyKeyboard($keyboard)->send();
         $chat->html($message)->keyboard($keyboard)->send();
     }
 }

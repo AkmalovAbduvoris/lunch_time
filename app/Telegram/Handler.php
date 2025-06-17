@@ -10,6 +10,11 @@ use App\Services\Commands\RegisterCommand;
 use App\Services\ChatTypeService;
 use App\Services\Commands\LeaveCommand;
 use App\Services\WorkerRoleService;
+use App\Models\Worker;
+use DefStudio\Telegraph\Keyboard\Button;
+use DefStudio\Telegraph\Keyboard\Keyboard;
+
+use function PHPUnit\Framework\callback;
 
 class Handler extends WebhookHandler
 {
@@ -44,8 +49,78 @@ class Handler extends WebhookHandler
         app(LeaveCommand::class)->handleLeave($this->chat, $member, app(ChatTypeService::class));
     }
 
-    public function send_sms(): void
+    public function move_up(): void
     {
-        $this->reply("Salom");
+        $id = $this->data->get('id');
+        $worker = Worker::find($id);
+
+        if (!$worker) return;
+
+        $above = Worker::where('order', '<', $worker->order)
+            ->orderBy('order', 'desc')
+            ->first();
+
+        if ($above) {
+            [$worker->order, $above->order] = [$above->order, $worker->order];
+            $worker->save();
+            $above->save();
+        }
+
+        $this->updateWorkersList();
     }
+
+    public function move_down(): void
+    {
+        $id = $this->data->get('id');
+        $worker = Worker::find($id);
+
+        if (!$worker) return;
+
+        $below = Worker::where('order', '>', $worker->order)
+            ->orderBy('order', 'asc')
+            ->first();
+
+        if ($below) {
+            [$worker->order, $below->order] = [$below->order, $worker->order];
+            $worker->save();
+            $below->save();
+        }
+
+        $this->updateWorkersList();
+    }
+
+    private function updateWorkersList(): void
+    {
+        $message = "👥 Faol ishchilar:\n";
+        $keyboard = Keyboard::make();
+
+        $workers = Worker::where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
+        foreach ($workers as $index => $workerItem) {
+            $position = $index + 1;
+            $username = $workerItem->username ? "@{$workerItem->username}" : "username yo'q";
+            $message .= "$position. {$workerItem->name} ($username)\n";
+
+            $row = [
+                Button::make("{$position}. {$workerItem->name}", callback('noop')),
+            ];
+
+            if ($index > 0) {
+                $row[] = Button::make("⬆️")->action('move_up')->param('id', $workerItem->id);
+            }
+
+            if ($index < $workers->count() - 1) {
+                $row[] = Button::make("⬇️")->action('move_down')->param('id', $workerItem->id);
+            }
+            $keyboard->row($row);
+        }
+
+        $this->chat->edit($this->callbackQuery->message()->id())
+            ->html($message)
+            ->keyboard($keyboard)
+            ->send();
+    }
+
 }

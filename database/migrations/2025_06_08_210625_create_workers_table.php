@@ -17,7 +17,9 @@ return new class extends Migration
             $table->string('username')->nullable();
             $table->bigInteger('telegram_id')->unique();
             $table->boolean('is_active')->default(true);
-            $table->bigInteger('chat_id');
+            $table->integer('order')->default(0);
+            $table->timestamp('lunch_started_at')->nullable();
+            $table->timestamp('lunch_ended_at')->nullable();
             $table->timestamps();
         });
     }
